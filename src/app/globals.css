@@ -1,26 +1,289 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
+/*
+ * SOFTROCK DESIGN TOKENS
+ * Stage-black base, warm bone type, Bairagi gold as the light source,
+ * and the logo's ember red reserved for tiny "live" signals.
+ */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-ink: #080807;
+  --color-ink-2: #100f0e;
+  --color-ink-3: #1a1917;
+  --color-bone: #f5f2ec;
+  --color-ash: #a8a49c;
+  --color-smoke: #8a867e; /* ≥4.8:1 on every surface (WCAG AA for small text) */
+  --color-gold: #d9a55b;
+  --color-gold-soft: #e9c58f;
+  --color-ember: #e2402f;
+  --color-line: rgb(255 255 255 / 0.12);
+
+  --font-display: var(--font-anton), Impact, sans-serif;
+  --font-serif: var(--font-instrument), Georgia, serif;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+
+  --ease-cinema: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/*
+ * Width-matched fallbacks for Anton (see layout.tsx). size-adjust makes each
+ * local font set the same line lengths as Anton, so the swap doesn't re-wrap text.
+ * Ratios were measured in Chrome: Impact 1.046×, Arial Narrow 1.16×, Arial 1.42× wider.
+ */
+@font-face {
+  font-family: "Anton Fallback Impact";
+  src: local("Impact");
+  size-adjust: 95.6%;
+}
+@font-face {
+  font-family: "Anton Fallback Narrow";
+  src: local("Arial Narrow"), local("ArialNarrow"), local("Roboto Condensed"), local("RobotoCondensed-Regular");
+  size-adjust: 86%;
+}
+@font-face {
+  font-family: "Anton Fallback Arial";
+  src: local("Arial"), local("Helvetica Neue"), local("Helvetica"), local("Roboto"), local("Liberation Sans");
+  size-adjust: 70.4%;
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background: var(--color-ink);
+    color: var(--color-bone);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    background: var(--color-gold);
+    color: var(--color-ink);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-gold);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  [id] {
+    scroll-margin-top: 6rem;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer components {
+  /* Small tracked label above headings */
+  .eyebrow {
+    font-family: var(--font-sans);
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    color: var(--color-gold);
+  }
+
+  /* Big poster headline */
+  .display {
+    font-family: var(--font-display);
+    font-weight: 400;
+    line-height: 0.92;
+    letter-spacing: 0.005em;
+    text-transform: uppercase;
+  }
+
+  /* Expressive serif accent for single words */
+  .accent {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-weight: 400;
+    text-transform: none;
+    letter-spacing: -0.01em;
+    color: var(--color-gold-soft);
+  }
+
+  .link-underline {
+    background-image: linear-gradient(currentColor, currentColor);
+    background-size: 0% 1px;
+    background-position: 0 100%;
+    background-repeat: no-repeat;
+    transition: background-size 0.5s var(--ease-cinema);
+  }
+  .link-underline:hover,
+  .link-underline:focus-visible,
+  .link-underline[aria-current="page"] {
+    background-size: 100% 1px;
+  }
+
+  .container-x {
+    width: 100%;
+    max-width: 88rem;
+    margin-inline: auto;
+    padding-inline: 1rem;
+  }
+  @media (min-width: 640px) {
+    .container-x {
+      padding-inline: 2rem;
+    }
+  }
+  @media (min-width: 1024px) {
+    .container-x {
+      padding-inline: 3rem;
+    }
+  }
+}
+
+/* Film grain overlay. A static SVG, so it costs nothing to animate. */
+.grain::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+  opacity: 0.07;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Slow push-in on hero stills */
+@keyframes kenburns {
+  from {
+    transform: scale(1.04) translate3d(0, 0, 0);
+  }
+  to {
+    transform: scale(1.14) translate3d(-1.5%, -1%, 0);
+  }
+}
+.kenburns {
+  animation: kenburns 24s var(--ease-cinema) both alternate infinite;
+}
+
+/*
+ * Hero headline "focus pull". CSS-only, and the text is never transparent:
+ * it paints on the very first frame (good for LCP), then sharpens into focus.
+ */
+@keyframes rise {
+  from {
+    transform: translate3d(0, 0.28em, 0);
+    filter: blur(14px);
+  }
+  to {
+    transform: none;
+    filter: blur(0);
+  }
+}
+.rise {
+  animation: rise 1.3s var(--ease-cinema) both;
+}
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
+.fade-in {
+  animation: fade 1.4s var(--ease-cinema) both;
+}
+
+/* Scroll cue */
+@keyframes cue {
+  0% {
+    transform: scaleY(0);
+    transform-origin: top;
+  }
+  45% {
+    transform: scaleY(1);
+    transform-origin: top;
+  }
+  55% {
+    transform: scaleY(1);
+    transform-origin: bottom;
+  }
+  100% {
+    transform: scaleY(0);
+    transform-origin: bottom;
+  }
+}
+.scroll-cue {
+  animation: cue 2.4s var(--ease-cinema) infinite;
+}
+
+/* Equalizer bars used as a "live" signal */
+@keyframes eq {
+  0%,
+  100% {
+    transform: scaleY(0.3);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+.eq > span {
+  display: block;
+  width: 2px;
+  height: 100%;
+  background: currentColor;
+  transform-origin: bottom;
+  animation: eq 1.1s ease-in-out infinite;
+}
+.eq > span:nth-child(2) {
+  animation-delay: -0.4s;
+}
+.eq > span:nth-child(3) {
+  animation-delay: -0.75s;
+}
+.eq > span:nth-child(4) {
+  animation-delay: -0.2s;
+}
+
+/*
+ * Scroll reveals (see components/ui/Reveal.tsx). Content is only hidden once
+ * <RevealObserver/> has armed <html data-reveal-ready>, so it never disappears without JavaScript.
+ */
+html[data-reveal-ready] [data-reveal] {
+  transition:
+    opacity 0.9s var(--ease-cinema),
+    transform 0.9s var(--ease-cinema);
+  transition-delay: var(--reveal-delay, 0s);
+}
+html[data-reveal-ready] [data-reveal]:not([data-revealed]) {
+  opacity: 0;
+  transform: translate3d(0, var(--reveal-y, 28px), 0);
+}
+@media print {
+  html[data-reveal-ready] [data-reveal]:not([data-revealed]) {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Native <dialog> backdrops */
+dialog::backdrop {
+  background: rgb(4 4 4 / 0.92);
+  backdrop-filter: blur(6px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    animation-delay: 0s !important;
+    transition-duration: 0.01ms !important;
+  }
+  .kenburns {
+    animation: none;
+    transform: scale(1.04);
+  }
+  html[data-reveal-ready] [data-reveal]:not([data-revealed]) {
+    opacity: 1;
+    transform: none;
+  }
 }
